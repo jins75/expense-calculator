@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A simple browser-based expense calculator for learning GitHub Pages.">
+  <title>Expense Calculator</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317242f'/%3E%3Cpath d='M36 15c-9-2-15 2-15 8 0 12 23 6 23 18 0 6-6 10-15 8M32 10v44' fill='none' stroke='%235ee0a0' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17242f;
+      --muted: #62717d;
+      --paper: #f4f7f5;
+      --card: #ffffff;
+      --line: #dce5df;
+      --accent: #167a58;
+      --accent-dark: #0f5c42;
+      --danger: #b42318;
+      --shadow: 0 18px 50px rgba(23, 36, 47, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(94, 224, 160, 0.18), transparent 28rem),
+        var(--paper);
+    }
+
+    button, input, select { font: inherit; }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 44px 0 64px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.7rem); letter-spacing: -0.055em; line-height: 0.95; }
+    .eyebrow { margin: 0 0 10px; color: var(--accent); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .78rem; }
+    .intro { max-width: 34rem; margin: 12px 0 0; color: var(--muted); line-height: 1.6; }
+
+    .total-card {
+      min-width: 230px;
+      padding: 18px 22px;
+      color: white;
+      background: var(--ink);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .total-card span { display: block; color: #b7c5ce; font-size: .85rem; }
+    .total-card strong { display: block; margin-top: 4px; font-size: 2rem; letter-spacing: -.04em; }
+
+    .grid { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 22px; align-items: start; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+    .form-panel { padding: 24px; }
+    .list-panel { overflow: hidden; }
+
+    h2 { margin: 0 0 20px; font-size: 1.2rem; }
+    label { display: block; margin-bottom: 7px; font-size: .9rem; font-weight: 750; }
+    .field { margin-bottom: 17px; }
+
+    input, select {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: #fbfcfb;
+      border: 1px solid #cbd8d0;
+      border-radius: 11px;
+      outline: none;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(22, 122, 88, .14); }
+
+    .primary {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      color: white;
+      background: var(--accent);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary:hover { background: var(--accent-dark); }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .summary div { padding: 20px; border-right: 1px solid var(--line); }
+    .summary div:last-child { border-right: 0; }
+    .summary span { display: block; margin-bottom: 5px; color: var(--muted); font-size: .8rem; }
+    .summary strong { font-size: 1.15rem; }
+
+    .list-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 22px 8px; }
+    .list-heading h2 { margin: 0; }
+    .clear { border: 0; padding: 8px; color: var(--danger); background: transparent; font-weight: 750; cursor: pointer; }
+
+    #expenseList { list-style: none; margin: 0; padding: 8px 22px 22px; }
+    .expense { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+    .expense:last-child { border-bottom: 0; }
+    .expense-name { font-weight: 800; }
+    .expense-meta { margin-top: 4px; color: var(--muted); font-size: .82rem; }
+    .expense-amount { font-weight: 850; font-variant-numeric: tabular-nums; }
+    .delete { width: 36px; height: 36px; border: 1px solid #f0c5c1; border-radius: 10px; color: var(--danger); background: #fff7f6; cursor: pointer; font-size: 1.1rem; }
+
+    .empty { padding: 34px 0; color: var(--muted); text-align: center; line-height: 1.6; }
+
+    @media (max-width: 760px) {
+      .shell { padding-top: 28px; }
+      header { align-items: stretch; flex-direction: column; }
+      .total-card { min-width: 0; }
+      .grid { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+      .summary div { border-right: 0; border-bottom: 1px solid var(--line); }
+      .summary div:last-child { border-bottom: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Personal finance</p>
+        <h1>Expense Calculator</h1>
+        <p class="intro">Add your spending below. Your expenses stay on this device and remain available after you refresh the page.</p>
+      </div>
+      <div class="total-card" aria-live="polite">
+        <span>Total spending</span>
+        <strong id="grandTotal">$0.00</strong>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel form-panel">
+        <h2>Add an expense</h2>
+        <form id="expenseForm">
+          <div class="field">
+            <label for="description">Description</label>
+            <input id="description" name="description" maxlength="60" placeholder="Groceries" required>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="48.50" required>
+          </div>
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+              <option>Food</option>
+              <option>Transportation</option>
+              <option>Housing</option>
+              <option>Entertainment</option>
+              <option>Shopping</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button class="primary" type="submit">Add expense</button>
+        </form>
+      </section>
+
+      <section class="panel list-panel">
+        <div class="summary">
+          <div><span>Entries</span><strong id="entryCount">0</strong></div>
+          <div><span>Largest expense</span><strong id="largestExpense">$0.00</strong></div>
+          <div><span>Top category</span><strong id="topCategory">—</strong></div>
+        </div>
+        <div class="list-heading">
+          <h2>Recent expenses</h2>
+          <button class="clear" id="clearAll" type="button">Clear all</button>
+        </div>
+        <ul id="expenseList"></ul>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const storageKey = "expense-calculator-items-v1";
+    const form = document.querySelector("#expenseForm");
+    const list = document.querySelector("#expenseList");
+    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+    let expenses = JSON.parse(localStorage.getItem(storageKey) || "[]");
+
+    function save() {
+      localStorage.setItem(storageKey, JSON.stringify(expenses));
+    }
+
+    function render() {
+      const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const largest = expenses.reduce((max, expense) => Math.max(max, expense.amount), 0);
+      const totalsByCategory = expenses.reduce((totals, expense) => {
+        totals[expense.category] = (totals[expense.category] || 0) + expense.amount;
+        return totals;
+      }, {});
+      const topCategory = Object.entries(totalsByCategory).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+      document.querySelector("#grandTotal").textContent = money.format(total);
+      document.querySelector("#entryCount").textContent = expenses.length;
+      document.querySelector("#largestExpense").textContent = money.format(largest);
+      document.querySelector("#topCategory").textContent = topCategory;
+
+      if (!expenses.length) {
+        list.innerHTML = '<li class="empty">No expenses yet.<br>Add your first one using the form.</li>';
+        return;
+      }
+
+      list.innerHTML = expenses.map(expense => `
+        <li class="expense">
+          <div>
+            <div class="expense-name">${escapeHtml(expense.description)}</div>
+            <div class="expense-meta">${escapeHtml(expense.category)} · ${expense.date}</div>
+          </div>
+          <span class="expense-amount">${money.format(expense.amount)}</span>
+          <button class="delete" type="button" data-id="${expense.id}" aria-label="Delete ${escapeHtml(expense.description)}">×</button>
+        </li>
+      `).join("");
+    }
+
+    function escapeHtml(value) {
+      const element = document.createElement("div");
+      element.textContent = value;
+      return element.innerHTML;
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const data = new FormData(form);
+      expenses.unshift({
+        id: crypto.randomUUID(),
+        description: data.get("description").trim(),
+        amount: Number(data.get("amount")),
+        category: data.get("category"),
+        date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date())
+      });
+      save();
+      render();
+      form.reset();
+      document.querySelector("#description").focus();
+    });
+
+    list.addEventListener("click", event => {
+      const button = event.target.closest("[data-id]");
+      if (!button) return;
+      expenses = expenses.filter(expense => expense.id !== button.dataset.id);
+      save();
+      render();
+    });
+
+    document.querySelector("#clearAll").addEventListener("click", () => {
+      if (!expenses.length || !confirm("Delete all expenses?")) return;
+      expenses = [];
+      save();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
